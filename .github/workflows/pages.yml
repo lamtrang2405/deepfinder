@@ -37,6 +37,24 @@ jobs:
         working-directory: deepfinder_app
         run: flutter build web --release --base-href /deepfinder/
 
+      - name: Publish pencil-new.html on Pages
+        run: |
+          cp pencil-new.html deepfinder_app/build/web/pencil-new.html
+          cat > deepfinder_app/build/web/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>DeepFinder Onboarding</title>
+            <meta http-equiv="refresh" content="0; url=./pencil-new.html" />
+          </head>
+          <body>
+            <p>Redirecting to <a href="./pencil-new.html">pencil-new.html</a>...</p>
+          </body>
+          </html>
+          EOF
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 

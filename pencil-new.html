@@ -1108,6 +1108,7 @@
       if (currentStep === 2) track.classList.add("step-2");
       if (currentStep === 3) track.classList.add("step-3");
       if (currentStep === 4) track.classList.add("step-4");
+      updateTextBoost();
     }
 
     function onPointerStart(x, y) {
@@ -1174,10 +1175,14 @@
     function updateTextBoost() {
       const baseW = 393;
       const baseH = 852;
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const coverScale = Math.max(vw / baseW, vh / baseH);
-      const fitScale = Math.min(vw / baseW, vh / baseH);
+      const stageEl = document.querySelector(".stage");
+      const stageRect = stageEl?.getBoundingClientRect();
+      const stageW = stageRect?.width || window.innerWidth;
+      const stageH = stageRect?.height || window.innerHeight;
+
+      // No-clip policy: always fit to real render stage.
+      const scale = Math.min(stageW / baseW, stageH / baseH);
+      const fitScale = scale;
 
       // Use fitScale to estimate readability pressure on very tall/narrow screens.
       // Keep base design size on normal screens, boost up to +24% when needed.
@@ -1187,16 +1192,20 @@
       const motionScale = fitScale < 1 ? Math.max(0.8, 1 - (1 - fitScale) * 0.3) : 1;
 
       // Always drive canvas size from JS numeric scale to avoid CSS unit math edge-cases.
-      document.documentElement.style.setProperty("--scale", coverScale.toFixed(4));
+      document.documentElement.style.setProperty("--scale", scale.toFixed(4));
       document.documentElement.style.setProperty("--text-boost", boost.toFixed(3));
       document.documentElement.style.setProperty("--motion-scale", motionScale.toFixed(3));
       console.log(
-        `[Adaptive UI] scale=${coverScale.toFixed(3)} fit=${fitScale.toFixed(3)} textBoost=${boost.toFixed(3)} motionScale=${motionScale.toFixed(3)}`
+        `[Adaptive UI] step=${currentStep} stage=${Math.round(stageW)}x${Math.round(stageH)} scale=${scale.toFixed(3)} textBoost=${boost.toFixed(3)} motionScale=${motionScale.toFixed(3)}`
       );
     }
 
     updateTextBoost();
     window.addEventListener("resize", updateTextBoost);
+    window.addEventListener("orientationchange", updateTextBoost);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", updateTextBoost);
+    }
 
     // Prevent broken-image placeholders from harming UI composition.
     document.querySelectorAll("img").forEach((img) => {
