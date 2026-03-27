@@ -23,6 +23,10 @@
       --text-boost: 1;
       --motion-scale: 1;
       --scale: 1;
+      --tight-1: 0;
+      --tight-2: 0;
+      --tight-3: 0;
+      --tight-4: 0;
       --bg: #d2d5de;
       --text-main: #3a2b26;
       --text-muted: #6a6a6e;
@@ -56,6 +60,59 @@
       transform-origin: center center;
       overflow: hidden;
       touch-action: pan-y;
+    }
+    @media (max-width: 768px) {
+      .stage {
+        height: 100svh;
+        place-items: start center;
+        padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+      }
+      .canvas {
+        transform-origin: top center;
+      }
+
+      /* Screen 1 adaptive vertical compaction */
+      .screen.screen-1 .title { top: calc(508px - (var(--tight-1) * 130px)); }
+      .screen.screen-1 .subtitle { top: calc(675px - (var(--tight-1) * 150px)); }
+      .screen.screen-1 .name-bar { top: calc(589px - (var(--tight-1) * 90px)); }
+      .screen.screen-1 .cta { top: calc(733px - (var(--tight-1) * 175px)); }
+      .screen.screen-1 .terms { top: calc(806px - (var(--tight-1) * 185px)); }
+
+      /* Screen 2 adaptive vertical compaction */
+      .screen.screen-2 .title.s2 { top: calc(560px - (var(--tight-2) * 130px)); }
+      .screen.screen-2 .subtitle.s2 { top: calc(650px - (var(--tight-2) * 145px)); }
+      .screen.screen-2 .cta.s2 { top: calc(733px - (var(--tight-2) * 170px)); }
+      .screen.screen-2 .terms.s2 { top: calc(806px - (var(--tight-2) * 180px)); }
+
+      /* Screen 3 adaptive vertical compaction */
+      .screen.screen-3 .title.s3 { top: calc(560px - (var(--tight-3) * 120px)); }
+      .screen.screen-3 .subtitle.s3 { top: calc(650px - (var(--tight-3) * 135px)); }
+      .screen.screen-3 .cta.s3 { top: calc(733px - (var(--tight-3) * 165px)); }
+      .screen.screen-3 .terms.s3 { top: calc(806px - (var(--tight-3) * 175px)); }
+
+      /* Screen 4 adaptive vertical compaction */
+      .screen.screen-4 .pay-title { top: calc(307px - (var(--tight-4) * 35px)); }
+      .screen.screen-4 .pay-features { top: calc(349px - (var(--tight-4) * 25px)); }
+      .screen.screen-4 .pay-trial { top: calc(470px - (var(--tight-4) * 20px)); }
+      .screen.screen-4 .pay-plan1 { top: calc(545px - (var(--tight-4) * 24px)); }
+      .screen.screen-4 .pay-plan2 { top: calc(640px - (var(--tight-4) * 30px)); }
+      .screen.screen-4 .pay-note { top: calc(718px - (var(--tight-4) * 38px)); }
+      .screen.screen-4 .pay-cta { top: calc(733px - (var(--tight-4) * 42px)); }
+      .screen.screen-4 .pay-terms { top: calc(806px - (var(--tight-4) * 46px)); }
+    }
+    @media (orientation: landscape) and (max-height: 520px) {
+      .stage {
+        height: 100svh;
+        place-items: start center;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-top: calc(env(safe-area-inset-top, 0px) + 6px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+      }
+      .canvas {
+        transform-origin: top center;
+      }
     }
     .track {
       position: absolute;
@@ -1177,16 +1234,41 @@
       const baseH = 852;
       const stageEl = document.querySelector(".stage");
       const stageRect = stageEl?.getBoundingClientRect();
-      const stageW = stageRect?.width || window.innerWidth;
-      const stageH = stageRect?.height || window.innerHeight;
+      const stageStyle = stageEl ? getComputedStyle(stageEl) : null;
+      const padX =
+        (parseFloat(stageStyle?.paddingLeft || "0") || 0) +
+        (parseFloat(stageStyle?.paddingRight || "0") || 0);
+      const padY =
+        (parseFloat(stageStyle?.paddingTop || "0") || 0) +
+        (parseFloat(stageStyle?.paddingBottom || "0") || 0);
+      const stageW = (stageRect?.width || window.innerWidth) - padX;
+      const stageH = (stageRect?.height || window.innerHeight) - padY;
 
-      // No-clip policy: always fit to real render stage.
-      const scale = Math.min(stageW / baseW, stageH / baseH);
+      const widthScale = stageW / baseW;
+      const heightScale = stageH / baseH;
+      const isMobilePortrait = stageW <= 430 && stageH >= stageW;
+      const isLandscapeLike = stageW > stageH;
+
+      // Priority mode:
+      // - Mobile portrait: fill width (user requirement)
+      // - Others: fit safely
+      const scale = (isMobilePortrait || isLandscapeLike) ? widthScale : Math.min(widthScale, heightScale);
       const fitScale = scale;
+
+      // Width-first + per-screen spacing fit:
+      // When width-first overflows vertically, compute a normalized compact factor [0..1].
+      const visibleBaseHeight = stageH / Math.max(scale, 0.0001);
+      const overflowBase = Math.max(0, baseH - visibleBaseHeight);
+      const tightBase = (isMobilePortrait || isLandscapeLike) ? Math.min(1, overflowBase / 190) : 0;
+      const tight1 = tightBase;
+      const tight2 = Math.min(1, tightBase * 0.92);
+      const tight3 = Math.min(1, tightBase * 0.95);
+      const tight4 = Math.min(1, tightBase * 0.78);
 
       // Use fitScale to estimate readability pressure on very tall/narrow screens.
       // Keep base design size on normal screens, boost up to +24% when needed.
-      const boost = fitScale < 1 ? Math.min(1.24, 1 + (1 - fitScale) * 0.6) : 1;
+      const boostCap = isLandscapeLike ? 1.38 : 1.24;
+      const boost = fitScale < 1 ? Math.min(boostCap, 1 + (1 - fitScale) * 0.6) : 1;
 
       // Motion scales down slightly on constrained screens to keep composition clean.
       const motionScale = fitScale < 1 ? Math.max(0.8, 1 - (1 - fitScale) * 0.3) : 1;
@@ -1195,8 +1277,12 @@
       document.documentElement.style.setProperty("--scale", scale.toFixed(4));
       document.documentElement.style.setProperty("--text-boost", boost.toFixed(3));
       document.documentElement.style.setProperty("--motion-scale", motionScale.toFixed(3));
+      document.documentElement.style.setProperty("--tight-1", tight1.toFixed(3));
+      document.documentElement.style.setProperty("--tight-2", tight2.toFixed(3));
+      document.documentElement.style.setProperty("--tight-3", tight3.toFixed(3));
+      document.documentElement.style.setProperty("--tight-4", tight4.toFixed(3));
       console.log(
-        `[Adaptive UI] step=${currentStep} stage=${Math.round(stageW)}x${Math.round(stageH)} scale=${scale.toFixed(3)} textBoost=${boost.toFixed(3)} motionScale=${motionScale.toFixed(3)}`
+        `[Adaptive UI] step=${currentStep} stage=${Math.round(stageW)}x${Math.round(stageH)} scale=${scale.toFixed(3)} overflowBase=${overflowBase.toFixed(1)} tight=[${tight1.toFixed(2)},${tight2.toFixed(2)},${tight3.toFixed(2)},${tight4.toFixed(2)}] textBoost=${boost.toFixed(3)} motionScale=${motionScale.toFixed(3)}`
       );
     }
 
