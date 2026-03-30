@@ -674,6 +674,8 @@
     const weeklySubtitle = document.getElementById("weeklySubtitle");
     const weeklyPrice = document.getElementById("weeklyPrice");
     const trialSaveBadge = document.getElementById("trialSaveBadge");
+    // Hide weekly subtitle text (e.g. "199.000d/week · billed weekly") on paywall.
+    if (weeklySubtitle) weeklySubtitle.hidden = true;
 
     function selectWeeklyPlan() {
       if (!planWeekly || !planYearly) return;
