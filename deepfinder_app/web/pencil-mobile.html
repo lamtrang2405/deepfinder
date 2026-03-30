@@ -588,6 +588,7 @@
 
   <script>
     const track = document.getElementById("track");
+    const dotsWrap = document.getElementById("dots");
     const dots = [...document.querySelectorAll(".dot")];
     const nextButtons = [...document.querySelectorAll(".next")];
     const trialToggle = document.getElementById("trialToggle");
@@ -595,6 +596,8 @@
 
     function renderStep() {
       track.style.transform = `translateX(-${step * 25}%)`;
+      // Hide pagination dots on paywall (screen 4 / step 3)
+      if (dotsWrap) dotsWrap.hidden = step === 3;
       dots.forEach((d, i) => {
         d.classList.toggle("on", i === step);
         d.setAttribute("aria-selected", i === step ? "true" : "false");
