@@ -562,7 +562,7 @@
           <button type="button" class="plan-option plan-weekly" id="planWeekly" aria-pressed="false" aria-label="Weekly plan">
             <span class="save" id="trialSaveBadge" hidden>SAVE 50%</span>
             <p class="pt" id="weeklyTitle">WEEKLY ACCESS</p>
-            <p class="ps" id="weeklySubtitle">199.000d/week · billed weekly</p>
+            <p class="ps" id="weeklySubtitle" hidden></p>
             <span class="price" id="weeklyPrice">199.000d</span>
             <span class="per">per week</span>
           </button>
@@ -674,8 +674,7 @@
     const weeklySubtitle = document.getElementById("weeklySubtitle");
     const weeklyPrice = document.getElementById("weeklyPrice");
     const trialSaveBadge = document.getElementById("trialSaveBadge");
-    // Hide weekly subtitle text (e.g. "199.000d/week · billed weekly") on paywall.
-    if (weeklySubtitle) weeklySubtitle.hidden = true;
+    // Weekly subtitle intentionally removed on paywall.
 
     function selectWeeklyPlan() {
       if (!planWeekly || !planYearly) return;
@@ -700,13 +699,11 @@
 
       if (trialOn) {
         weeklyTitle.textContent = "WEEKLY TRIAL ACCESS";
-        weeklySubtitle.textContent = "then 199.000d/week";
         weeklyPrice.textContent = "99.000d";
         trialSaveBadge.hidden = false;
         selectWeeklyPlan();
       } else {
         weeklyTitle.textContent = "WEEKLY ACCESS";
-        weeklySubtitle.textContent = "199.000d/week · billed weekly";
         weeklyPrice.textContent = "199.000d";
         trialSaveBadge.hidden = true;
         selectYearlyPlan();
