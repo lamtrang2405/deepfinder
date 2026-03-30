@@ -296,6 +296,10 @@
       outline: 2px solid #111;
       outline-offset: 3px;
     }
+    /* Paywall: hide pagination dots entirely */
+    .dots.is-paywall {
+      display: none !important;
+    }
 
     /* Photo appear: animate <img> inside frames (not the carousel / not swapping URLs) */
     @keyframes flowImgAppear {
@@ -597,7 +601,11 @@
     function renderStep() {
       track.style.transform = `translateX(-${step * 25}%)`;
       // Hide pagination dots on paywall (screen 4 / step 3)
-      if (dotsWrap) dotsWrap.hidden = step === 3;
+      if (dotsWrap) {
+        dotsWrap.hidden = step === 3;
+        dotsWrap.classList.toggle("is-paywall", step === 3);
+        dotsWrap.style.display = step === 3 ? "none" : "";
+      }
       dots.forEach((d, i) => {
         d.classList.toggle("on", i === step);
         d.setAttribute("aria-selected", i === step ? "true" : "false");
