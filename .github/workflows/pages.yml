@@ -37,23 +37,45 @@ jobs:
         working-directory: deepfinder_app
         run: flutter build web --release --base-href /deepfinder/
 
-      - name: Publish pencil-new.html on Pages
+      - name: Publish onboarding (pencil-mobile.html) on Pages
         run: |
-          cp pencil-new.html deepfinder_app/build/web/pencil-new.html
+          # Flutter copies deepfinder_app/web/* into build/web; optional root override
+          if [ -f pencil-mobile.html ]; then cp -f pencil-mobile.html deepfinder_app/build/web/pencil-mobile.html; fi
+          test -f deepfinder_app/build/web/pencil-mobile.html || { echo "pencil-mobile.html missing (add deepfinder_app/web/pencil-mobile.html or repo-root pencil-mobile.html)"; exit 1; }
+          # Site entry → pencil-mobile (not pencil-new)
           cat > deepfinder_app/build/web/index.html <<'EOF'
           <!doctype html>
           <html lang="en">
           <head>
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <title>DeepFinder Onboarding</title>
-            <meta http-equiv="refresh" content="0; url=./pencil-new.html" />
+            <title>DeepFinder</title>
+            <link rel="canonical" href="./pencil-mobile.html" />
+            <meta http-equiv="refresh" content="0; url=./pencil-mobile.html" />
           </head>
           <body>
-            <p>Redirecting to <a href="./pencil-new.html">pencil-new.html</a>...</p>
+            <p>Redirecting to <a href="./pencil-mobile.html">onboarding</a>…</p>
           </body>
           </html>
           EOF
+          # Old links / cached workflows pointed here — forward to pencil-mobile
+          cat > deepfinder_app/build/web/pencil-new.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>Redirecting…</title>
+            <link rel="canonical" href="./pencil-mobile.html" />
+            <meta http-equiv="refresh" content="0; url=./pencil-mobile.html" />
+          </head>
+          <body>
+            <p><a href="./pencil-mobile.html">Open onboarding</a></p>
+          </body>
+          </html>
+          EOF
+          grep -q 'pencil-mobile.html' deepfinder_app/build/web/index.html || { echo "index.html must redirect to pencil-mobile.html"; exit 1; }
+          test -f deepfinder_app/build/web/pencil-mobile.html || { echo "pencil-mobile.html missing"; exit 1; }
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

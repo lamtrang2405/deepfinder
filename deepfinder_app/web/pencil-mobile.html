@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Pencil Screens - Mobile HTML</title>
+  <style>
+    :root {
+      --bg: #d2d5de;
+      --title: #3a2b26;
+      --muted: #6a6a6e;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); }
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      min-height: 100dvh;
+      color: #101116;
+    }
+    .viewport {
+      max-width: 430px;
+      width: 100%;
+      min-height: 100dvh;
+      margin: 0 auto;
+      overflow: hidden;
+      position: relative;
+      touch-action: manipulation;
+      padding-top: calc(var(--safe-top) + 8px);
+      padding-bottom: calc(var(--safe-bottom) + 10px);
+    }
+    .track {
+      display: flex;
+      width: 400%;
+      transform: translateX(0%);
+      transition: transform 420ms ease;
+      touch-action: pan-y;
+    }
+    .screen {
+      width: 25%;
+      min-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 18px);
+      padding: 12px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .rings {
+      position: absolute;
+      inset: -120px -80px auto -80px;
+      height: 380px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .ring {
+      position: absolute;
+      border-radius: 999px;
+      border: 3px solid #ffffff44;
+    }
+    .ring.r1 { inset: 0; }
+    .ring.r2 { inset: 36px; border-color: #ffffff33; }
+    .ring.r3 { inset: 72px; border-color: #ffffff26; }
+    .hero, .pay-hero {
+      z-index: 1;
+      position: relative;
+      margin: 90px auto 0;
+      width: min(70vw, 255px);
+      aspect-ratio: 1 / 1;
+      border-radius: 34px;
+      overflow: hidden;
+      border: 5px solid #e3e7ee;
+      background: #c9ced8;
+    }
+    .hero img, .side-photo img, .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .bar {
+      z-index: 1;
+      margin-top: 14px;
+      background: #f1f3f6;
+      border-radius: 999px;
+      padding: 8px 10px 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 20px #00000020;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .chip {
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #ff7a45, #fd4fac 55%, #7b61ff);
+      color: #fff;
+      padding: 8px 14px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .heading {
+      margin: 14px 0 8px;
+      color: var(--title);
+      font-size: clamp(31px, 8.4vw, 35px);
+      line-height: 1.08;
+      font-weight: 700;
+    }
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+    .content {
+      z-index: 1;
+      margin-top: auto;
+    }
+    .cta {
+      margin-top: 16px;
+      width: 100%;
+      height: 54px;
+      border-radius: 999px;
+      border: 0;
+      background: #000;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .terms {
+      margin: 10px 12px 0;
+      color: #a8a9ad;
+      font-size: 11px;
+      line-height: 1.3;
+      text-align: center;
+    }
+    .bubble, .tag {
+      position: absolute;
+      z-index: 2;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 0 12px;
+      min-height: 34px;
+    }
+    .bubble {
+      width: 46px;
+      height: 46px;
+      padding: 0;
+      font-size: 18px;
+    }
+    .s2 .bubble.ig { top: 52px; left: 72px; background: radial-gradient(circle at 35% 35%, #ffdd55 0%, #ff543e 45%, #c837ab 75%, #5c51d8 100%); }
+    .s2 .bubble.td { top: 46px; right: 40px; background: #f4f5f7; color: #ff4b7a; }
+    .s2 .tag.work { left: 16px; top: 116px; background: #4c556b; transform: rotate(-24deg); }
+    .s2 .tag.love { top: 54px; left: 50%; transform: translateX(-50%) rotate(24deg); background: #f64e80; }
+    .s2 .tag.more { right: 10px; top: 118px; background: #068c9b; transform: rotate(9deg); }
+    .s3 .tag.friend { top: 42px; left: 62px; background: #557f54; transform: rotate(-9deg); }
+    .s3 .tag.work { top: 68px; right: 20px; background: #4c556b; transform: rotate(24deg); }
+    .s3 .tag.more { top: 312px; left: -8px; background: #068c9b; }
+    .s3 .tag.interest { top: 404px; right: -6px; background: #6f4f84; transform: rotate(-16deg); }
+    .s3 .card {
+      z-index: 1;
+      position: relative;
+      margin: 88px auto 0;
+      width: min(72vw, 280px);
+      border-radius: 24px;
+      background: #ebedf2;
+      box-shadow: 0 12px 24px #00000022;
+      padding: 14px;
+    }
+    .s3 .photo-main {
+      width: 100%;
+      aspect-ratio: 1.2 / 1;
+      border-radius: 18px;
+      overflow: hidden;
+      background: #c5cad1;
+    }
+    .s3 .name { margin: 10px 0 2px; font-size: 34px; line-height: 1; font-weight: 600; }
+    .s3 .bio { margin: 0; color: #7a7b80; font-size: 11px; line-height: 1.25; }
+    .side-photo {
+      position: absolute;
+      width: 82px;
+      height: 100px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 16px #0000001f;
+      z-index: 1;
+    }
+    .s3 .left { left: -10px; top: 206px; }
+    .s3 .right-top { right: -10px; top: 108px; }
+    .s3 .right-bottom { right: -12px; top: 272px; }
+    .s4 .close { font-size: 28px; line-height: 1; }
+    .pay-hero {
+      margin-top: 24px;
+      width: min(58vw, 220px);
+      aspect-ratio: 217 / 122;
+      border: 0;
+      border-radius: 18px;
+      background: #ecedef;
+      display: grid;
+      place-items: center;
+      color: #8f9399;
+      font-weight: 700;
+    }
+    .avatars { position: absolute; inset: 26px 0 auto; z-index: 1; }
+    .avatar { position: absolute; width: 30px; height: 30px; border-radius: 50%; overflow: hidden; }
+    .avatar.a1 { left: 86px; top: 0; }
+    .avatar.a2 { right: 52px; top: 14px; }
+    .avatar.a3 { left: 22px; top: 62px; }
+    .avatar.a4 { right: 20px; top: 104px; }
+    .pay-title {
+      margin: 16px 0 8px;
+      text-align: center;
+      font-size: clamp(35px, 8.2vw, 40px);
+      line-height: 1;
+      letter-spacing: 0.01em;
+      color: #343740;
+      font-weight: 700;
+    }
+    .pay-title span { color: #ff971a; }
+    .features {
+      margin: 0 auto 14px;
+      width: fit-content;
+      padding: 0;
+      list-style: none;
+      font-size: 12px;
+      color: #171920;
+      line-height: 1.55;
+    }
+    .row {
+      border-radius: 15px;
+      padding: 12px 14px;
+      margin-top: 10px;
+      position: relative;
+    }
+    .trial { background: #e7e8ea; border: 2px solid #d0d2d8; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: #595c61; }
+    .toggle { width: 62px; height: 34px; border-radius: 999px; background: #dbdcdf; border: 0; position: relative; }
+    .toggle::after { content: ""; position: absolute; top: 2px; left: 3px; width: 30px; height: 30px; border-radius: 50%; background: #ececef; transition: transform .2s ease; }
+    .toggle.on { background: #2fcf7a; }
+    .toggle.on::after { transform: translateX(26px); }
+    .s4 button.plan-option {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 15px;
+      padding: 12px 14px;
+      position: relative;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      background: #e8e8e8;
+      border: 1px solid #bdbdbd;
+      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .s4 button.plan-option.selected {
+      background: #e1efff;
+      border: 2px solid #7b61ff;
+      box-shadow: 0 0 0 1px #7b61ff22;
+    }
+    .s4 button.plan-option:focus-visible {
+      outline: 2px solid #7b61ff;
+      outline-offset: 2px;
+    }
+    .save { position: absolute; top: -12px; right: 10px; background: #ff9800; color: #fff; border-radius: 20px; font-size: 11px; font-weight: 700; padding: 7px 10px; }
+    .save[hidden] { display: none !important; }
+    .pt { margin: 0; font-size: 15px; font-weight: 700; color: #14151b; }
+    .ps { margin: 3px 0 0; font-size: 11px; color: #4c4f55; }
+    .price { position: absolute; right: 14px; top: 12px; font-size: 15px; color: #171920; }
+    .per { position: absolute; right: 14px; top: 34px; font-size: 11px; color: #4c4f55; }
+    .pay-note { text-align: center; margin-top: 10px; color: #4a4d53; font-size: 11px; }
+    .pay-cta { margin-top: 10px; width: 100%; height: 54px; border-radius: 999px; border: 0; background: linear-gradient(180deg, #232530, #1a1b22); color: #fff; font-size: 16px; font-weight: 500; }
+    .pay-links { margin-top: 10px; text-align: center; color: #aaaaaf; font-size: 11px; }
+    .dots {
+      position: fixed;
+      left: 50%;
+      bottom: calc(var(--safe-bottom) + 6px);
+      transform: translateX(-50%);
+      display: flex;
+      gap: 7px;
+      z-index: 20;
+    }
+    .dots button.dot {
+      width: 10px;
+      height: 10px;
+      padding: 0;
+      border: none;
+      border-radius: 50%;
+      background: #9aa0ad;
+      opacity: .45;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .dots button.dot.on { background: #111; opacity: 1; }
+    .dots button.dot:focus-visible {
+      outline: 2px solid #111;
+      outline-offset: 3px;
+    }
+
+    /* Photo appear: animate <img> inside frames (not the carousel / not swapping URLs) */
+    @keyframes flowImgAppear {
+      from {
+        opacity: 0;
+        transform: scale(0.94);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    .screen.is-active .hero img,
+    .screen.is-active .side-photo img,
+    .screen.is-active .avatar img,
+    .screen.is-active.s3 .photo-main img {
+      animation: flowImgAppear 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
+      transform-origin: center center;
+    }
+    .screen.is-active.s1 .hero img { animation-delay: 0.04s; }
+    .screen.is-active.s2 .hero img { animation-delay: 0.04s; }
+    .screen.is-active.s3 .photo-main img { animation-delay: 0.08s; }
+    .screen.is-active.s3 .side-photo.left img { animation-delay: 0.2s; }
+    .screen.is-active.s3 .side-photo.right-top img { animation-delay: 0.28s; }
+    .screen.is-active.s3 .side-photo.right-bottom img { animation-delay: 0.36s; }
+    .screen.is-active.s4 .avatar.a1 img { animation-delay: 0.04s; }
+    .screen.is-active.s4 .avatar.a2 img { animation-delay: 0.1s; }
+    .screen.is-active.s4 .avatar.a3 img { animation-delay: 0.16s; }
+    .screen.is-active.s4 .avatar.a4 img { animation-delay: 0.22s; }
+    .screen.is-active.s4 .pay-hero {
+      animation: flowImgAppear 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: 0.26s;
+      transform-origin: center center;
+    }
+
+    /* s1: search bar slides up after hero; chip pops slightly later */
+    @keyframes flowBarUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes flowChipPop {
+      from { opacity: 0; transform: scale(0.82); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .screen.is-active.s1 .bar {
+      animation: flowBarUp 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: 0.24s;
+    }
+    .screen.is-active.s1 .bar > span {
+      animation: flowBarUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: 0.26s;
+    }
+    .screen.is-active.s1 .bar .chip {
+      animation: flowChipPop 0.42s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+      animation-delay: 0.38s;
+      transform-origin: center center;
+    }
+
+    /* s2: bubbles + tags stagger after hero */
+    @keyframes flowBubblePop {
+      from { opacity: 0; transform: scale(0.45); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes s2TagWork {
+      from { opacity: 0; transform: scale(0.65) rotate(-10deg); }
+      to { opacity: 1; transform: scale(1) rotate(-24deg); }
+    }
+    @keyframes s2TagLove {
+      from { opacity: 0; transform: translateX(-50%) scale(0.65) rotate(10deg); }
+      to { opacity: 1; transform: translateX(-50%) scale(1) rotate(24deg); }
+    }
+    @keyframes s2TagMore {
+      from { opacity: 0; transform: scale(0.65) rotate(0deg); }
+      to { opacity: 1; transform: scale(1) rotate(9deg); }
+    }
+    .screen.is-active.s2 .bubble.ig {
+      animation: flowBubblePop 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+      animation-delay: 0.32s;
+      transform-origin: center center;
+    }
+    .screen.is-active.s2 .bubble.td {
+      animation: flowBubblePop 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+      animation-delay: 0.4s;
+      transform-origin: center center;
+    }
+    .screen.is-active.s2 .tag.work {
+      animation: s2TagWork 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: 0.46s;
+      transform-origin: center center;
+    }
+    .screen.is-active.s2 .tag.love {
+      animation: s2TagLove 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: 0.52s;
+      transform-origin: center center;
+    }
+    .screen.is-active.s2 .tag.more {
+      animation: s2TagMore 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: 0.58s;
+      transform-origin: center center;
+    }
+
+    /* s3: whole card first; photo-main follows card (no double scale) */
+    @keyframes flowSoftUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes s3TagFriend {
+      from { opacity: 0; transform: scale(0.65) rotate(-4deg); }
+      to { opacity: 1; transform: scale(1) rotate(-9deg); }
+    }
+    @keyframes s3TagWork {
+      from { opacity: 0; transform: scale(0.65) rotate(12deg); }
+      to { opacity: 1; transform: scale(1) rotate(24deg); }
+    }
+    @keyframes s3TagMore {
+      from { opacity: 0; transform: scale(0.65) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes s3TagInterest {
+      from { opacity: 0; transform: scale(0.65) rotate(-8deg); }
+      to { opacity: 1; transform: scale(1) rotate(-16deg); }
+    }
+    .screen.is-active.s3 .name {
+      animation: flowSoftUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: 0.32s;
+    }
+    .screen.is-active.s3 .bio {
+      animation: flowSoftUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: 0.4s;
+    }
+    .screen.is-active.s3 .tag.friend {
+      animation: s3TagFriend 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: 0.48s;
+      transform-origin: center center;
+    }
+    .screen.is-active.s3 .tag.work {
+      animation: s3TagWork 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: 0.54s;
+      transform-origin: center center;
+    }
+    .screen.is-active.s3 .tag.more {
+      animation: s3TagMore 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: 0.6s;
+      transform-origin: center center;
+    }
+    .screen.is-active.s3 .tag.interest {
+      animation: s3TagInterest 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-delay: 0.66s;
+      transform-origin: center center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .screen.is-active .hero img,
+      .screen.is-active .side-photo img,
+      .screen.is-active .avatar img,
+      .screen.is-active.s3 .photo-main img,
+      .screen.is-active.s4 .pay-hero {
+        animation: none;
+        opacity: 1;
+        transform: none;
+      }
+      .screen.is-active.s1 .bar,
+      .screen.is-active.s1 .bar > span,
+      .screen.is-active.s1 .bar .chip,
+      .screen.is-active.s2 .bubble.ig,
+      .screen.is-active.s2 .bubble.td,
+      .screen.is-active.s2 .tag.work,
+      .screen.is-active.s2 .tag.love,
+      .screen.is-active.s2 .tag.more,
+      .screen.is-active.s3 .name,
+      .screen.is-active.s3 .bio,
+      .screen.is-active.s3 .tag.friend,
+      .screen.is-active.s3 .tag.work,
+      .screen.is-active.s3 .tag.more,
+      .screen.is-active.s3 .tag.interest {
+        animation: none;
+        opacity: 1;
+        transform: none;
+      }
+      .screen.is-active.s2 .tag.love { transform: translateX(-50%) rotate(24deg); }
+      .screen.is-active.s3 .tag.work { transform: rotate(24deg); }
+      .screen.is-active.s3 .tag.friend { transform: rotate(-9deg); }
+      .screen.is-active.s3 .tag.interest { transform: rotate(-16deg); }
+    }
+
+    @media (max-height: 700px) {
+      .screen { padding-top: 8px; }
+      .hero { margin-top: 66px; }
+      .s3 .card { margin-top: 66px; }
+      .heading { font-size: clamp(28px, 7.8vw, 31px); margin-top: 10px; }
+      .sub { font-size: 13px; }
+      .cta, .pay-cta { height: 50px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="viewport" id="viewport">
+    <div class="track" id="track">
+      <section class="screen s1">
+        <div class="rings"><div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div></div>
+        <div class="hero"><img src="https://images.unsplash.com/photo-1507257918517-a8fe38a38e24?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;q=80&amp;w=1080" alt="hero portrait" decoding="async"></div>
+        <div class="bar"><span>Jane Cooper</span><button class="chip" type="button">Search</button></div>
+        <div class="content">
+          <h1 class="heading">See Beyond<br>What’s Public</h1>
+          <p class="sub">Search across 500+ platforms and uncover hidden profiles, photos, and activity instantly.</p>
+          <button class="cta next" type="button">Continue</button>
+          <p class="terms">By tapping "Continue," you agree to our Term of Service and Privacy Policy</p>
+        </div>
+      </section>
+
+      <section class="screen s2">
+        <div class="rings"><div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div></div>
+        <div class="bubble ig">◎</div><div class="bubble td">●</div>
+        <div class="tag work">#Work</div><div class="tag love">#Love</div><div class="tag more">#More</div>
+        <div class="hero"><img src="https://images.unsplash.com/photo-1759957667802-d9b306c739b2?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;q=80&amp;w=1080" alt="search result portrait" decoding="async"></div>
+        <div class="content">
+          <h1 class="heading">One Search.<br>Everything You Need.</h1>
+          <p class="sub">No switching apps. No guessing. Get the full online picture of anyone in seconds.</p>
+          <button class="cta next" type="button">Continue</button>
+          <p class="terms">By tapping "Continue," you agree to our Term of Service and Privacy Policy</p>
+        </div>
+      </section>
+
+      <section class="screen s3">
+        <div class="rings"><div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div></div>
+        <div class="tag friend">#Friend</div><div class="tag work">#Work</div><div class="tag more">#More</div><div class="tag interest">#Interest</div>
+        <div class="side-photo left"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&amp;fit=crop&amp;w=500&amp;q=80" alt="" decoding="async"></div>
+        <div class="side-photo right-top"><img src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&amp;fit=crop&amp;w=500&amp;q=80" alt="" decoding="async"></div>
+        <div class="side-photo right-bottom"><img src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&amp;fit=crop&amp;w=500&amp;q=80" alt="" decoding="async"></div>
+        <div class="card">
+          <div class="photo-main"><img src="https://images.unsplash.com/photo-1667882281392-4ba77a11faed?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;q=80&amp;w=1080" alt="main profile" decoding="async"></div>
+          <h3 class="name">Jane Cooper</h3>
+          <p class="bio">Entrepreneur, investor, and business magnate who has founded co-founded several prominent technology ventures.</p>
+        </div>
+        <div class="content">
+          <h1 class="heading">Know Who You’re<br>Really Dealing With.</h1>
+          <p class="sub">New date, new colleague, buyer, seller - get clarity before you trust.</p>
+          <button class="cta next" type="button">Continue</button>
+          <p class="terms">By tapping "Continue," you agree to our Term of Service and Privacy Policy</p>
+        </div>
+      </section>
+
+      <section class="screen s4">
+        <div class="close">×</div>
+        <div class="avatars">
+          <div class="avatar a1"><img src="https://images.unsplash.com/photo-1728463087277-97c8d8c7b6a4?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;q=80&amp;w=400" alt="" decoding="async"></div>
+          <div class="avatar a2"><img src="https://images.unsplash.com/photo-1644966486873-39171635ab43?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;q=80&amp;w=400" alt="" decoding="async"></div>
+          <div class="avatar a3"><img src="https://images.unsplash.com/photo-1530785602389-07594beb8b73?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;q=80&amp;w=400" alt="" decoding="async"></div>
+          <div class="avatar a4"><img src="https://images.unsplash.com/photo-1644896026815-76216723bb47?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;q=80&amp;w=400" alt="" decoding="async"></div>
+        </div>
+        <div class="pay-hero">Search Preview</div>
+        <div class="content">
+          <h2 class="pay-title">GET <span>PRO</span> ACCESS</h2>
+          <ul class="features">
+            <li>• Search Unlimited Names</li>
+            <li>• Get AI-Powered Deep Reports</li>
+            <li>• Reach Photos & Online Sources</li>
+            <li>• Find Social Media Profiles</li>
+          </ul>
+          <div class="row trial">
+            <span>Trial Enabled</span>
+            <button class="toggle" id="trialToggle" type="button" role="switch" aria-checked="false" aria-label="Enable weekly trial"></button>
+          </div>
+          <button type="button" class="plan-option plan-weekly" id="planWeekly" aria-pressed="false" aria-label="Weekly plan">
+            <span class="save" id="trialSaveBadge" hidden>SAVE 50%</span>
+            <p class="pt" id="weeklyTitle">WEEKLY ACCESS</p>
+            <p class="ps" id="weeklySubtitle">199.000d/week · billed weekly</p>
+            <span class="price" id="weeklyPrice">199.000d</span>
+            <span class="per">per week</span>
+          </button>
+          <button type="button" class="plan-option plan-yearly selected" id="planYearly" aria-pressed="true" aria-label="Yearly plan">
+            <p class="pt">YEARLY ACCESS</p>
+            <p class="ps">just 999.000d per year</p>
+            <span class="price" style="color:#3e4046">d19211.54</span>
+            <span class="per">per week</span>
+          </button>
+          <p class="pay-note">Cancel anytime, auto-renewable</p>
+          <button class="pay-cta" type="button">Continue</button>
+          <p class="pay-links">Terms of Use · Privacy Policy · Restore Purchase</p>
+        </div>
+      </section>
+    </div>
+  </div>
+  <div class="dots" id="dots" role="tablist" aria-label="Screen">
+    <button type="button" class="dot on" role="tab" aria-selected="true" aria-label="Screen 1"></button>
+    <button type="button" class="dot" role="tab" aria-selected="false" aria-label="Screen 2"></button>
+    <button type="button" class="dot" role="tab" aria-selected="false" aria-label="Screen 3"></button>
+    <button type="button" class="dot" role="tab" aria-selected="false" aria-label="Screen 4"></button>
+  </div>
+
+  <script>
+    const track = document.getElementById("track");
+    const dots = [...document.querySelectorAll(".dot")];
+    const nextButtons = [...document.querySelectorAll(".next")];
+    const trialToggle = document.getElementById("trialToggle");
+    let step = 0;
+
+    function renderStep() {
+      track.style.transform = `translateX(-${step * 25}%)`;
+      dots.forEach((d, i) => {
+        d.classList.toggle("on", i === step);
+        d.setAttribute("aria-selected", i === step ? "true" : "false");
+      });
+      document.querySelectorAll(".screen").forEach((s, i) => {
+        s.classList.toggle("is-active", i === step);
+      });
+    }
+
+    function goNext() {
+      if (step < 3) {
+        step += 1;
+        renderStep();
+      }
+    }
+
+    nextButtons.forEach((btn) => btn.addEventListener("click", goNext));
+
+    dots.forEach((dot, i) => {
+      dot.addEventListener("click", () => {
+        step = i;
+        renderStep();
+      });
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" && step < 3) {
+        step += 1;
+        renderStep();
+      }
+      if (e.key === "ArrowLeft" && step > 0) {
+        step -= 1;
+        renderStep();
+      }
+    });
+
+    const viewportEl = document.getElementById("viewport");
+    let dragX0 = null;
+    let dragY0 = null;
+    let dragActive = false;
+    viewportEl.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      if (e.target.closest(".cta, .chip, .next, .toggle, .pay-cta, .dot, .plan-option")) return;
+      dragActive = true;
+      dragX0 = e.clientX;
+      dragY0 = e.clientY;
+      viewportEl.setPointerCapture(e.pointerId);
+    });
+    viewportEl.addEventListener("pointerup", (e) => {
+      if (!dragActive || dragX0 === null || dragY0 === null) return;
+      dragActive = false;
+      const dx = e.clientX - dragX0;
+      const dy = e.clientY - dragY0;
+      dragX0 = null;
+      dragY0 = null;
+      try {
+        viewportEl.releasePointerCapture(e.pointerId);
+      } catch (_) {}
+      if (Math.abs(dx) < 48) return;
+      if (Math.abs(dx) < Math.abs(dy) * 1.15) return;
+      if (dx < 0 && step < 3) step += 1;
+      if (dx > 0 && step > 0) step -= 1;
+      renderStep();
+    });
+    viewportEl.addEventListener("pointercancel", () => {
+      dragActive = false;
+      dragX0 = null;
+      dragY0 = null;
+    });
+
+    const planWeekly = document.getElementById("planWeekly");
+    const planYearly = document.getElementById("planYearly");
+    const weeklyTitle = document.getElementById("weeklyTitle");
+    const weeklySubtitle = document.getElementById("weeklySubtitle");
+    const weeklyPrice = document.getElementById("weeklyPrice");
+    const trialSaveBadge = document.getElementById("trialSaveBadge");
+
+    function selectWeeklyPlan() {
+      if (!planWeekly || !planYearly) return;
+      planWeekly.classList.add("selected");
+      planYearly.classList.remove("selected");
+      planWeekly.setAttribute("aria-pressed", "true");
+      planYearly.setAttribute("aria-pressed", "false");
+    }
+
+    function selectYearlyPlan() {
+      if (!planWeekly || !planYearly) return;
+      planYearly.classList.add("selected");
+      planWeekly.classList.remove("selected");
+      planYearly.setAttribute("aria-pressed", "true");
+      planWeekly.setAttribute("aria-pressed", "false");
+    }
+
+    function applyTrialPaywallState() {
+      if (!trialToggle || !weeklyTitle || !weeklySubtitle || !weeklyPrice || !trialSaveBadge) return;
+      const trialOn = trialToggle.classList.contains("on");
+      trialToggle.setAttribute("aria-checked", trialOn ? "true" : "false");
+
+      if (trialOn) {
+        weeklyTitle.textContent = "WEEKLY TRIAL ACCESS";
+        weeklySubtitle.textContent = "then 199.000d/week";
+        weeklyPrice.textContent = "99.000d";
+        trialSaveBadge.hidden = false;
+        selectWeeklyPlan();
+      } else {
+        weeklyTitle.textContent = "WEEKLY ACCESS";
+        weeklySubtitle.textContent = "199.000d/week · billed weekly";
+        weeklyPrice.textContent = "199.000d";
+        trialSaveBadge.hidden = true;
+        selectYearlyPlan();
+      }
+    }
+
+    if (planWeekly && planYearly) {
+      planWeekly.addEventListener("click", () => selectWeeklyPlan());
+      planYearly.addEventListener("click", () => selectYearlyPlan());
+    }
+
+    if (trialToggle) {
+      trialToggle.addEventListener("click", () => {
+        trialToggle.classList.toggle("on");
+        applyTrialPaywallState();
+      });
+    }
+
+    applyTrialPaywallState();
+
+    renderStep();
+  </script>
+</body>
+</html>
